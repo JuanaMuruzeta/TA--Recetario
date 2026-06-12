@@ -14,14 +14,15 @@ from src.historial import leer_historial
 
 
 def crear_carpeta_graficos():
-   """
-   Crea la carpeta graficos si no existe.
+    """
+    Crea la carpeta graficos si no existe.
 
-   Retorna:
-   None
-   """
-   if not os.path.exists("graficos"):
-       os.makedirs("graficos")
+    Retorna:
+        None
+    """
+
+    if not os.path.exists("graficos"):
+        os.makedirs("graficos")
 
 
 def grafico_ingredientes_por_categoria():
@@ -29,12 +30,8 @@ def grafico_ingredientes_por_categoria():
     Genera un gráfico de barras con los ingredientes más buscados,
     agrupados por categoría.
 
-    Usa las columnas:
-    - ingredientes
-    - categoria
-
     Retorna:
-    None
+        None
     """
 
     crear_carpeta_graficos()
@@ -70,7 +67,6 @@ def grafico_ingredientes_por_categoria():
     df = pd.DataFrame(datos)
 
     resumen = df.groupby(["categoria", "ingrediente"]).size().reset_index(name="cantidad")
-
     resumen = resumen.sort_values("cantidad", ascending=False).head(10)
 
     etiquetas = resumen["categoria"] + " - " + resumen["ingrediente"]
@@ -88,16 +84,13 @@ def grafico_ingredientes_por_categoria():
     print("Gráfico guardado: graficos/grafico_ingredientes_por_categoria.png")
     return None
 
+
 def grafico_paises_mas_solicitados():
     """
-    Genera un gráfico de barras con los países más solicitados
-    según el historial de búsquedas.
-
-    Usa la columna:
-    - pais
+    Genera un gráfico de barras con los países más solicitados según el historial.
 
     Retorna:
-    None
+        None
     """
 
     crear_carpeta_graficos()
@@ -112,7 +105,6 @@ def grafico_paises_mas_solicitados():
         return None
 
     paises = historial["pais"]
-
     paises = paises[paises != "Sin datos"]
 
     if len(paises) == 0:
@@ -134,16 +126,53 @@ def grafico_paises_mas_solicitados():
     print("Gráfico guardado: graficos/grafico_paises_mas_solicitados.png")
     return None
 
+
+def grafico_mejor_porcentaje_por_busqueda():
+    """
+    Genera un gráfico de barras con el mejor porcentaje de coincidencia
+    obtenido en cada búsqueda.
+
+    Retorna:
+        None
+    """
+
+    crear_carpeta_graficos()
+    historial = leer_historial()
+
+    if historial is None or historial.empty:
+        print("No hay historial para generar este gráfico.")
+        return None
+
+    if "ingredientes" not in historial.columns or "mejor_porcentaje" not in historial.columns:
+        print("Faltan columnas necesarias: ingredientes o mejor_porcentaje.")
+        return None
+
+    ultimas_busquedas = historial.tail(10)
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(ultimas_busquedas["ingredientes"], ultimas_busquedas["mejor_porcentaje"])
+    plt.title("Mejor porcentaje de coincidencia por búsqueda")
+    plt.xlabel("Ingredientes buscados")
+    plt.ylabel("Mejor porcentaje de coincidencia")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig("graficos/grafico_mejor_porcentaje_por_busqueda.png")
+    plt.close()
+
+    print("Gráfico guardado: graficos/grafico_mejor_porcentaje_por_busqueda.png")
+    return None
+
+
 def grafico_top_10_paises_base_datos(recetas):
     """
     Genera un gráfico con los 10 países o regiones con más recetas
     dentro de la lista de recetas procesadas.
 
     Parámetros:
-    recetas (list): lista de diccionarios de recetas.
+        recetas (list): lista de diccionarios de recetas.
 
     Retorna:
-    None
+        None
     """
 
     crear_carpeta_graficos()
@@ -179,44 +208,6 @@ def grafico_top_10_paises_base_datos(recetas):
     print("Gráfico guardado: graficos/grafico_top_10_paises_base_datos.png")
     return None
 
-def grafico_mejor_porcentaje_por_busqueda():
-    """
-    Genera un gráfico de barras con el mejor porcentaje de coincidencia
-    obtenido en cada búsqueda.
-
-    Usa las columnas:
-    - ingredientes
-    - mejor_porcentaje
-
-    Retorna:
-    None
-    """
-
-    crear_carpeta_graficos()
-    historial = leer_historial()
-
-    if historial is None or historial.empty:
-        print("No hay historial para generar este gráfico.")
-        return None
-
-    if "ingredientes" not in historial.columns or "mejor_porcentaje" not in historial.columns:
-        print("Faltan columnas necesarias: ingredientes o mejor_porcentaje.")
-        return None
-
-    ultimas_busquedas = historial.tail(10)
-
-    plt.figure(figsize=(10, 6))
-    plt.bar(ultimas_busquedas["ingredientes"], ultimas_busquedas["mejor_porcentaje"])
-    plt.title("Mejor porcentaje de coincidencia por búsqueda")
-    plt.xlabel("Ingredientes buscados")
-    plt.ylabel("Mejor porcentaje de coincidencia")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig("graficos/grafico_mejor_porcentaje_por_busqueda.png")
-    plt.close()
-
-    print("Gráfico guardado: graficos/grafico_mejor_porcentaje_por_busqueda.png")
-    return None
 
 def grafico_cantidad_recetas_por_pais(recetas):
     """
@@ -224,10 +215,10 @@ def grafico_cantidad_recetas_por_pais(recetas):
     dentro de una lista de recetas procesadas.
 
     Parámetros:
-    recetas (list): lista de diccionarios de recetas.
+        recetas (list): lista de diccionarios de recetas.
 
     Retorna:
-    None
+        None
     """
 
     crear_carpeta_graficos()
@@ -261,4 +252,20 @@ def grafico_cantidad_recetas_por_pais(recetas):
     plt.close()
 
     print("Gráfico guardado: graficos/grafico_cantidad_recetas_por_pais.png")
+    return None
+
+
+def generar_grafico_historial():
+    """
+    Genera los gráficos que se pueden hacer usando el historial.
+
+    Retorna:
+        None
+    """
+
+    grafico_ingredientes_por_categoria()
+    grafico_paises_mas_solicitados()
+    grafico_mejor_porcentaje_por_busqueda()
+
+    print("Gráficos del historial generados correctamente.")
     return None
