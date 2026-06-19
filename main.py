@@ -12,14 +12,19 @@ from src.procesamiento import filtrar_recetas_por_pais
 from src.procesamiento import ordenar_por_coincidencia
 from src.historial import guardar_busqueda, mostrar_historial
 from src.validaciones import separar_ingredientes, es_valida_opcion_menu, validar_numero_receta
-from src.graficos import grafico_ingredientes_por_categoria
+from src.graficos import menu_graficos
 
 
 def mostrar_menu():
     """
     Muestra el menú principal del programa.
+
+    Retorna:
+    None
     """
-    print("\nBIENVENIDA AL BUSCADOR DE RECETAS")
+
+    print()
+    print("BIENVENIDA AL BUSCADOR DE RECETAS")
     print("1. Buscar recetas por ingredientes")
     print("2. Ver historial de búsquedas")
     print("3. Ver gráficos")
@@ -29,39 +34,67 @@ def mostrar_menu():
 def mostrar_ranking_recetas(recetas):
     """
     Muestra el ranking de recetas ordenadas por porcentaje de coincidencia.
+
+    Parámetros:
+    recetas : list
+        Lista de recetas procesadas y ordenadas.
+
+    Retorna:
+    None
     """
-    print(f"\nRECETAS ENCONTRADAS: {len(recetas)}")
+
+    print()
+    print(f"RECETAS ENCONTRADAS: {len(recetas)}")
 
     for i in range(len(recetas)):
         receta = recetas[i]
+
+        print()
         print(f"{i + 1}. {receta['nombre']}")
-        print(f"   País: {receta['pais']}")
-        print(f"   Categoría: {receta['categoria']}")
-        print(f"   Ingredientes coincidentes: {receta['coincidencias']}")
-        print(f"   Porcentaje de coincidencia: {receta['porcentaje']}%")
+        print(f"País: {receta['pais']}")
+        print(f"Categoría: {receta['categoria']}")
+        print(f"Ingredientes coincidentes: {receta['coincidencias']}")
+        print(f"Porcentaje de coincidencia: {receta['porcentaje']}%")
 
 
 def mostrar_detalle_receta(receta):
     """
     Muestra el detalle completo de una receta elegida.
+
+    Parámetros:
+    receta : dict
+        Diccionario con la información de una receta.
+
+    Retorna:
+    None
     """
-    print("\nDETALLE DE LA RECETA")
+
+    print()
+    print("DETALLE DE LA RECETA")
     print("Nombre:", receta["nombre"])
     print("País:", receta["pais"])
     print("Categoría:", receta["categoria"])
 
-    print("\nIngredientes:")
+    print()
+    print("Ingredientes:")
+
     for ingrediente in receta["ingredientes_receta"]:
         print("-", ingrediente)
 
-    print("\nInstrucciones:")
+    print()
+    print("Instrucciones:")
     print(receta["instrucciones"])
 
 
 def pedir_pais():
     """
     Pregunta si el usuario quiere filtrar recetas por país.
+
+    Retorna:
+    str
+        País ingresado por el usuario o texto vacío si no quiere filtrar.
     """
+
     respuesta = input("\n¿Desea filtrar recetas por país? (si/no): ")
 
     if respuesta.lower() == "si":
@@ -74,57 +107,79 @@ def pedir_pais():
 def ejecutar_busqueda():
     """
     Ejecuta el proceso completo de búsqueda de recetas.
-    """
-    texto_ingredientes = input("\nIngrese ingredientes separados por coma: ")
 
+    Retorna:
+    None
+    """
+
+    texto_ingredientes = input("\nIngrese ingredientes separados por coma: ")
     ingredientes_usuario = separar_ingredientes(texto_ingredientes)
-    if len(ingredientes_usuario) == 0: 
+
+    if len(ingredientes_usuario) == 0:
         print("Debe ingresar al menos un ingrediente.")
-        return
+        return None
 
     pais = pedir_pais()
     ingrediente_principal = ingredientes_usuario[0]
 
-    print("\nBuscando recetas...")
+    print()
+    print("Buscando recetas...")
+
     recetas_api = buscar_recetas_por_ingrediente(ingrediente_principal)
 
     if len(recetas_api) == 0:
         print("No se encontraron recetas con ese ingrediente.")
         guardar_busqueda(texto_ingredientes, 0, 0, "", "", pais)
-        return
+        return None
 
-    recetas_procesadas = procesar_json_recetas_api(recetas_api,ingredientes_usuario)
-
+    recetas_procesadas = procesar_json_recetas_api(recetas_api, ingredientes_usuario)
     recetas_filtradas = filtrar_recetas_por_pais(recetas_procesadas, pais)
     recetas_ordenadas = ordenar_por_coincidencia(recetas_filtradas)
 
     if len(recetas_ordenadas) == 0:
         print("No se encontraron recetas con ese filtro.")
         guardar_busqueda(texto_ingredientes, 0, 0, "", "", pais)
-        return
+        return None
 
     mostrar_ranking_recetas(recetas_ordenadas)
 
     mejor_porcentaje = recetas_ordenadas[0]["porcentaje"]
-    guardar_busqueda(texto_ingredientes, len(recetas_ordenadas), mejor_porcentaje, recetas_ordenadas[0]['nombre'], recetas_ordenadas[0]['categoria'], pais)
+
+    guardar_busqueda(
+        texto_ingredientes,
+        len(recetas_ordenadas),
+        mejor_porcentaje,
+        recetas_ordenadas[0]["nombre"],
+        recetas_ordenadas[0]["categoria"],
+        pais
+    )
 
     while True:
         while True:
             opcion = input("\nIngrese el número de una receta para ver el detalle o 0 para volver al menú: ")
+
             if validar_numero_receta(opcion, len(recetas_ordenadas)):
                 break
 
         numero = int(opcion)
+
         if numero == 0:
             break
 
         receta_elegida = recetas_ordenadas[numero - 1]
         mostrar_detalle_receta(receta_elegida)
 
+    return None
+
+
 def main():
     """
     Función principal del programa.
+
+    Retorna:
+    None
     """
+
     salir = False
 
     while salir == False:
@@ -141,11 +196,13 @@ def main():
             mostrar_historial()
 
         elif opcion == "3":
-            grafico_ingredientes_por_categoria()
+            menu_graficos()
 
         elif opcion == "4":
             print("Gracias por usar el buscador de recetas.")
             salir = True
 
 
-main()
+
+if __name__ == "__main__":
+    main()
