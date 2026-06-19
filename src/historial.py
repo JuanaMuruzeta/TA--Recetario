@@ -207,5 +207,4 @@ def obtener_ingredientes_mas_buscados():
 
     return ingredientes_mas_buscados
 
-# Acá dejamos COLUMNAS_HISTORIAL para no repetir mil veces las columnas
- y para que todo coincida.
+# Acá dejamos COLUMNAS_HISTORIAL para no repetir mil veces las columnas y para que todo coincida.
