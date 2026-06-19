@@ -6,14 +6,13 @@ Created on Wed Jun 10 14:23:15 2026
 @author: giuliamaniotti
 """
 
-from src.api_recetas import buscar_recetas_por_ingrediente, obtener_detalle_receta
-from src.procesamiento import convertir_texto_a_lista_ingredientes
-from src.procesamiento import armar_recetas_procesadas
+from src.api_recetas import buscar_recetas_por_ingrediente
+from src.procesamiento import procesar_json_recetas_api
 from src.procesamiento import filtrar_recetas_por_pais
-from src.procesamiento import ordenar_recetas_por_coincidencia
+from src.procesamiento import ordenar_por_coincidencia
 from src.historial import guardar_busqueda, mostrar_historial
-from src.validaciones import validar_ingredientes, validar_opcion_menu, validar_numero_receta
-from src.graficos import generar_todos_los_graficos
+from src.validaciones import separar_ingredientes, es_valida_opcion_menu, validar_numero_receta
+from src.graficos import grafico_ingredientes_por_categoria
 
 
 def mostrar_menu():
@@ -68,8 +67,8 @@ def pedir_pais():
     if respuesta.lower() == "si":
         pais = input("Ingrese el país en inglés, por ejemplo Italian, Mexican, Canadian: ")
         return pais
-
-    return ""
+    else:
+        return ""
 
 
 def ejecutar_busqueda():
@@ -78,14 +77,9 @@ def ejecutar_busqueda():
     """
     texto_ingredientes = input("\nIngrese ingredientes separados por coma: ")
 
-    if not validar_ingredientes(texto_ingredientes):
+    ingredientes_usuario = separar_ingredientes(texto_ingredientes)
+    if len(ingredientes_usuario) == 0: 
         print("Debe ingresar al menos un ingrediente.")
-        return
-
-    ingredientes_usuario = convertir_texto_a_lista_ingredientes(texto_ingredientes)
-
-    if len(ingredientes_usuario) == 0:
-        print("Debe ingresar ingredientes válidos.")
         return
 
     pais = pedir_pais()
@@ -96,49 +90,36 @@ def ejecutar_busqueda():
 
     if len(recetas_api) == 0:
         print("No se encontraron recetas con ese ingrediente.")
-        guardar_busqueda(ingredientes_usuario, pais, 0, 0)
+        guardar_busqueda(texto_ingredientes, 0, 0, "", "", pais)
         return
 
-    recetas_procesadas = armar_recetas_procesadas(
-        recetas_api,
-        ingredientes_usuario,
-        obtener_detalle_receta
-    )
+    recetas_procesadas = procesar_json_recetas_api(recetas_api,ingredientes_usuario)
 
     recetas_filtradas = filtrar_recetas_por_pais(recetas_procesadas, pais)
-    recetas_ordenadas = ordenar_recetas_por_coincidencia(recetas_filtradas)
+    recetas_ordenadas = ordenar_por_coincidencia(recetas_filtradas)
 
     if len(recetas_ordenadas) == 0:
         print("No se encontraron recetas con ese filtro.")
-        guardar_busqueda(ingredientes_usuario, pais, 0, 0)
+        guardar_busqueda(texto_ingredientes, 0, 0, "", "", pais)
         return
 
     mostrar_ranking_recetas(recetas_ordenadas)
 
     mejor_porcentaje = recetas_ordenadas[0]["porcentaje"]
-    guardar_busqueda(ingredientes_usuario, pais, len(recetas_ordenadas), mejor_porcentaje)
+    guardar_busqueda(texto_ingredientes, len(recetas_ordenadas), mejor_porcentaje, recetas_ordenadas[0]['nombre'], recetas_ordenadas[0]['categoria'], pais)
 
-    opcion = input("\nIngrese el número de una receta para ver el detalle o 0 para volver al menú: ")
+    while True:
+        while True:
+            opcion = input("\nIngrese el número de una receta para ver el detalle o 0 para volver al menú: ")
+            if validar_numero_receta(opcion, len(recetas_ordenadas)):
+                break
 
-    if not validar_numero_receta(opcion, len(recetas_ordenadas)):
-        print("Número inválido.")
-        return
+        numero = int(opcion)
+        if numero == 0:
+            break
 
-    numero = int(opcion)
-
-    if numero == 0:
-        return
-
-    receta_elegida = recetas_ordenadas[numero - 1]
-    mostrar_detalle_receta(receta_elegida)
-
-
-def mostrar_graficos():
-    """
-    Genera todos los gráficos definidos para la opción 3 del menú.
-    """
-    generar_todos_los_graficos()
-
+        receta_elegida = recetas_ordenadas[numero - 1]
+        mostrar_detalle_receta(receta_elegida)
 
 def main():
     """
@@ -150,7 +131,7 @@ def main():
         mostrar_menu()
         opcion = input("\nIngrese una opción: ")
 
-        if not validar_opcion_menu(opcion):
+        if not es_valida_opcion_menu(opcion):
             print("Opción inválida. Ingrese un número del 1 al 4.")
 
         elif opcion == "1":
@@ -160,7 +141,7 @@ def main():
             mostrar_historial()
 
         elif opcion == "3":
-            mostrar_graficos()
+            grafico_ingredientes_por_categoria()
 
         elif opcion == "4":
             print("Gracias por usar el buscador de recetas.")

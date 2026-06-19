@@ -269,3 +269,4 @@ def generar_grafico_historial():
 
     print("Gráficos del historial generados correctamente.")
     return None
+

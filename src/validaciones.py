@@ -1,4 +1,4 @@
-def validar_ingredientes(texto):
+def separar_ingredientes(texto):
     """
     Convierte el texto ingresado por el usuario en una lista de ingredientes válida.
 
@@ -9,10 +9,6 @@ def validar_ingredientes(texto):
         list: lista de ingredientes limpios.
               Si el texto es inválido, devuelve lista vacía.
     """
-
-    if type(texto) != str:
-        return []
-
     if texto.strip() == "":
         return []
 
@@ -28,7 +24,7 @@ def validar_ingredientes(texto):
     return ingredientes_validos
 
 
-def validar_opcion_menu(opcion):
+def es_valida_opcion_menu(opcion):
     """
     Verifica si la opción ingresada pertenece al menú.
 
@@ -69,9 +65,22 @@ def validar_resultados_api(resultados):
 
     return True
 
-Ojo: validar_ingredientes() devuelve una lista, no True/False. Entonces en main.py se usa así:
-ingredientes_usuario = validar_ingredientes(texto_ingredientes)
+def validar_numero_receta(opcion_elegida, opcion_maxima):
+    try:
+        n = int(opcion_elegida)
+        if 0 <= n <= opcion_maxima:
+            return True
+        else:
+            print('El número de receta no existe')
+            return False
+    except ValueError :
+        print('El número no es válido')
 
-if len(ingredientes_usuario) == 0:
-    print("Debe ingresar al menos un ingrediente.")
-    return
+# Ojo: validar_ingredientes() devuelve una lista, no True/False. 
+# Entonces en main.py se usa así:
+# ingredientes_usuario = validar_ingredientes(texto_ingredientes)
+
+# if len(ingredientes_usuario) == 0:
+    # print("Debe ingresar al menos un ingrediente.")
+    # return
+
