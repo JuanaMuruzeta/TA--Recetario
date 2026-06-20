@@ -29,15 +29,11 @@ def calcular_coincidencias(ingredientes_usuario, ingredientes_receta):
 
     contador = 0
 
-    for ingrediente_usuario in ingredientes_usuario:
-        ingrediente_usuario = ingrediente_usuario.strip().lower()
+    for ingrediente in ingredientes_usuario:
+        ingrediente = ingrediente.strip().lower()
 
-        for ingrediente_receta in ingredientes_receta:
-            ingrediente_receta = ingrediente_receta.strip().lower()
-
-            if ingrediente_usuario in ingrediente_receta:
-                contador += 1
-                break
+        if ingrediente in ingredientes_receta:
+            contador += 1
 
     return contador
 
@@ -58,7 +54,7 @@ def calcular_porcentaje_coincidencia(coincidencias, cantidad_ingredientes_usuari
     if cantidad_ingredientes_usuario == 0:
         return 0
 
-    porcentaje = coincidencias / cantidad_ingredientes_usuario * 100
+    porcentaje = (coincidencias / cantidad_ingredientes_usuario) * 100
 
     return round(porcentaje, 2)
 
@@ -66,32 +62,24 @@ def calcular_porcentaje_coincidencia(coincidencias, cantidad_ingredientes_usuari
 def ordenar_por_coincidencia(recetas):
     """
     Ordena las recetas de mayor a menor porcentaje de coincidencia.
-    También elimina las recetas que no tienen ninguna coincidencia.
 
     Parámetros:
         recetas (list): lista de diccionarios con información de las recetas.
 
     Retorna:
-        list: lista ordenada y filtrada.
+        list: lista ordenada.
     """
 
     if not recetas:
         return []
 
-    recetas_con_coincidencia = []
+    recetas_ordenadas = sorted(
+        recetas,
+        key=lambda receta: receta["porcentaje"],
+        reverse=True
+    )
 
-    for receta in recetas:
-        if receta["coincidencias"] > 0:
-            recetas_con_coincidencia.append(receta)
-
-    for i in range(len(recetas_con_coincidencia)):
-        for j in range(i + 1, len(recetas_con_coincidencia)):
-            if recetas_con_coincidencia[j]["porcentaje"] > recetas_con_coincidencia[i]["porcentaje"]:
-                auxiliar = recetas_con_coincidencia[i]
-                recetas_con_coincidencia[i] = recetas_con_coincidencia[j]
-                recetas_con_coincidencia[j] = auxiliar
-
-    return recetas_con_coincidencia
+    return recetas_ordenadas
 
 
 def filtrar_por_porcentaje(recetas, minimo):
@@ -148,17 +136,6 @@ def filtrar_por_categoria(recetas, categoria):
 
 
 def filtrar_recetas_por_pais(recetas, pais):
-    """
-    Filtra recetas según el país ingresado por el usuario.
-
-    Parámetros:
-        recetas (list): lista de recetas.
-        pais (str): país ingresado.
-
-    Retorna:
-        list: recetas filtradas por país.
-    """
-
     if pais == "":
         return recetas
 
@@ -171,61 +148,53 @@ def filtrar_recetas_por_pais(recetas, pais):
     return recetas_filtradas
 
 
+# Acá dejé una sola variable para el porcentaje:
+# receta["porcentaje"]
+
+# No uses a veces "porcentaje" y a veces "porcentaje_coincidencia", porque después se rompe.
+
+
 def extraer_ingredientes(receta_completa):
     """
     Revisa las 20 posibles claves en las que puede haber un ingrediente
-    y devuelve una lista con los valores que no estaban vacíos.
-
-    Retorna:
-        list: lista de ingredientes de la receta.
+    (por ejemplo: strIngredient1, strIngredient2, ..., etc) y devuelve
+    una lista con los valores que no estaban vacíos. Es decir hasta 20 ingredientes.
     """
-
     ingredientes = []
 
     for i in range(1, 21):
-        clave = f"strIngredient{i}"
-
-        if clave in receta_completa:
-            ingrediente = receta_completa[clave]
-
-            if ingrediente is not None and ingrediente.strip() != "":
-                ingredientes.append(ingrediente.strip().lower())
+        if f"strIngredient{i}" in receta_completa and receta_completa[f"strIngredient{i}"] != "":
+            ingredientes.append(receta_completa[f"strIngredient{i}"])
 
     return ingredientes
 
 
 def procesar_json_recetas_api(recetas, ingredientes):
     """
-    Convierte la lista de diccionarios que viene en el json de la API
-    a una lista con los datos como los queremos nosotros.
-
-    Parámetros:
-        recetas (list): recetas obtenidas de la API.
-        ingredientes (list): ingredientes ingresados por el usuario.
-
-    Retorna:
-        list: lista de recetas procesadas.
+    Convierte la lista de diccionarios que viene en el json de la api
+    a una lista con los datos como los queremos nosotros (diccionario con otras claves y valores)
     """
-
     recetas_limpiadas = []
 
     for receta in recetas:
+
         receta_completa = obtener_detalle_receta(receta["idMeal"])
 
         ingredientes_receta = extraer_ingredientes(receta_completa)
 
-        coincidencias = calcular_coincidencias(ingredientes, ingredientes_receta)
+        coincidencias = 0
 
-        porcentaje_coincidencias = calcular_porcentaje_coincidencia(
-            coincidencias,
-            len(ingredientes)
-        )
+        for ingrediente in ingredientes:
+            if ingrediente in ingredientes_receta:
+                coincidencias += 1
+
+        porcentaje_coincidencias = coincidencias / len(ingredientes)
 
         detalle = {
             "nombre": receta_completa["strMeal"],
             "id": receta_completa["idMeal"],
             "categoria": receta_completa["strCategory"],
-            "pais": receta_completa["strArea"],
+            "pais": receta_completa["strCountry"],
             "ingredientes_receta": ingredientes_receta,
             "coincidencias": coincidencias,
             "porcentaje": porcentaje_coincidencias,
