@@ -148,12 +148,6 @@ def filtrar_recetas_por_pais(recetas, pais):
     return recetas_filtradas
 
 
-# Acá dejé una sola variable para el porcentaje:
-# receta["porcentaje"]
-
-# No uses a veces "porcentaje" y a veces "porcentaje_coincidencia", porque después se rompe.
-
-
 def extraer_ingredientes(receta_completa):
     """
     Revisa las 20 posibles claves en las que puede haber un ingrediente
@@ -163,8 +157,8 @@ def extraer_ingredientes(receta_completa):
     ingredientes = []
 
     for i in range(1, 21):
-        if f"strIngredient{i}" in receta_completa and receta_completa[f"strIngredient{i}"] != "":
-            ingredientes.append(receta_completa[f"strIngredient{i}"])
+        if f"strIngredient{i}" in receta_completa and receta_completa[f"strIngredient{i}"]:
+            ingredientes.append(receta_completa[f"strIngredient{i}"].lower())
 
     return ingredientes
 
@@ -185,7 +179,7 @@ def procesar_json_recetas_api(recetas, ingredientes):
         coincidencias = 0
 
         for ingrediente in ingredientes:
-            if ingrediente in ingredientes_receta:
+            if ingrediente.lower() in ingredientes_receta:
                 coincidencias += 1
 
         porcentaje_coincidencias = coincidencias / len(ingredientes)

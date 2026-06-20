@@ -75,12 +75,3 @@ def validar_numero_receta(opcion_elegida, opcion_maxima):
             return False
     except ValueError :
         print('El número no es válido')
-
-# Ojo: validar_ingredientes() devuelve una lista, no True/False. 
-# Entonces en main.py se usa así:
-# ingredientes_usuario = validar_ingredientes(texto_ingredientes)
-
-# if len(ingredientes_usuario) == 0:
-    # print("Debe ingresar al menos un ingrediente.")
-    # return
-

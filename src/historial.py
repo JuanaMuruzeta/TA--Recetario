@@ -206,5 +206,3 @@ def obtener_ingredientes_mas_buscados():
     ingredientes_mas_buscados = pd.Series(lista_ingredientes).value_counts()
 
     return ingredientes_mas_buscados
-
-# Acá dejamos COLUMNAS_HISTORIAL para no repetir mil veces las columnas y para que todo coincida.
