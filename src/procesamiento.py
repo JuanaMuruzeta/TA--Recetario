@@ -182,7 +182,7 @@ def procesar_json_recetas_api(recetas, ingredientes):
             if ingrediente.lower() in ingredientes_receta:
                 coincidencias += 1
 
-        porcentaje_coincidencias = coincidencias / len(ingredientes)
+        porcentaje_coincidencias = round((coincidencias / len(ingredientes)) * 100, 2)
 
         detalle = {
             "nombre": receta_completa["strMeal"],
